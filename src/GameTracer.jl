@@ -55,6 +55,7 @@ end
 """
 # [TODO] TBD: Still under discussion
 function ipa_solve(
+    rng::AbstractRNG,
     g::NormalFormGame;
     ray::Union{Vector{Float64}, Nothing} = nothing,
     alpha::Float64 = 0.02,
@@ -64,7 +65,7 @@ function ipa_solve(
     M = sum(p.nums_actions)
 
     if ray === nothing
-        ray = rand(M)
+        ray = rand(rng, M)
     end
     z_hat = ones(M)
     
@@ -75,6 +76,8 @@ function ipa_solve(
     return IPAResult(NE, p.nums_actions)
 end
 
+ipa_solve(g::NormalFormGame; kwargs...) = 
+    ipa_solve(Random.GLOBAL_RNG, g; kwargs...)
 
 """
     gnm_solve(g::NormalFormGame) -> GNMResult
@@ -92,6 +95,7 @@ end
 """
 # [TODO] TBD: Still under discussion
 function gnm_solve(
+    rng::AbstractRNG,
     g::NormalFormGame;
     ray::Union{Vector{Float64}, Nothing} = nothing,
     steps::Integer = 100,
@@ -106,7 +110,7 @@ function gnm_solve(
     M = sum(p.nums_actions)
 
     if ray === nothing
-        ray = rand(M)
+        ray = rand(rng, M)
     end
 
     equilibria_flat = _gnm(p.nums_actions, p.payoffs, ray,
@@ -117,6 +121,9 @@ function gnm_solve(
     
     return GNMResult(NEs, p.nums_actions)
 end
+
+gnm_solve(g::NormalFormGame; kwargs...) = 
+    gnm_solve(Random.GLOBAL_RNG, g; kwargs...)
 
 # ------------------------------------------------------------------
 # Private API (C ABI wrappers)
