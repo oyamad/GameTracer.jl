@@ -58,15 +58,15 @@ function ipa_solve(
     g::NormalFormGame;
     ray::Union{Vector{Float64}, Nothing} = nothing,
     alpha::Float64 = 0.02,
-    fuzz::Float64 = 1e-12,
+    fuzz::Float64 = 1e-6,
 )
     p = GAMPayoffVector(Float64, g)
     M = sum(p.nums_actions)
 
     if ray === nothing
-        ray = randn(M)
+        ray = rand(M)
     end
-    zh = copy(ray)
+    zh = ones(M)
     
     ans = _ipa(p.nums_actions, p.payoffs, ray, zh, alpha, fuzz)
     
@@ -93,18 +93,18 @@ function gnm_solve(
     g::NormalFormGame;
     ray::Union{Vector{Float64}, Nothing} = nothing,
     steps::Integer = 100,
-    fuzz::Float64 = 1e-12,
+    fuzz::Float64 = 1e-6,
     lnmfreq::Integer = 3,
     lnmmax::Integer = 10,
     lambdamin::Float64 = -10.0,
-    wobble::Integer = 0,
+    wobble::Bool = false,
     threshold::Float64 = 1e-2
 )
     p = GAMPayoffVector(Float64, g)
     M = sum(p.nums_actions)
 
     if ray === nothing
-        ray = randn(M)
+        ray = rand(M)
     end
 
     equilibria = _gnm(p.nums_actions, p.payoffs, ray,
