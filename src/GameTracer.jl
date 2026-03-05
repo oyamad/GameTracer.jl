@@ -42,7 +42,7 @@ end
 """
     ipa_solve(g::NormalFormGame) -> IPAResult
 
-# Arguements
+# Arguments
 
 # Keyword Arguments
 
@@ -79,7 +79,7 @@ end
 """
     gnm_solve(g::NormalFormGame) -> GNMResult
 
-# Arguements
+# Arguments
 
 # Keyword Arguments
 
