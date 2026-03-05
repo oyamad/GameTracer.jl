@@ -74,7 +74,7 @@ function ipa!(
     end
     z_hat = ones(M)
     
-    result = _ipa(p.nums_actions, p.payoffs, ray, z_hat, alpha, fuzz)
+    result = ipa(p.nums_actions, p.payoffs, ray, z_hat, alpha, fuzz)
 
     copyto!(ans, result)
     
@@ -157,7 +157,7 @@ function gnm_solve(
         ray = rand(rng, M)
     end
 
-    equilibria_flat = _gnm(p.nums_actions, p.payoffs, ray,
+    equilibria_flat = gnm(p.nums_actions, p.payoffs, ray,
                       steps, fuzz, lnmfreq, lnmmax, 
                       lambdamin, wobble, threshold)
     
@@ -182,7 +182,7 @@ function _slice_actions(
     return ntuple(i -> flat[offsets[i]+1 : offsets[i+1]], Val(N))
 end
 
-function _ipa(
+function ipa(
     nums_actions::NTuple{N,Int},
     payoffs::Vector{Float64},
     ray::Vector{Float64},
@@ -206,7 +206,7 @@ function _ipa(
     return ans
 end
 
-function _gnm(
+function gnm(
     nums_actions::NTuple{N,Int},
     payoffs::Vector{Float64},
     ray::Vector{Float64},
