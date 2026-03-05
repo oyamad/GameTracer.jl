@@ -204,19 +204,10 @@ function _gnm(
         answers_view = unsafe_wrap(Array, ptr, (M, Int(num_eq)); own=false)
         copy(answers_view)
     finally
-        _gametracer_free(ptr)
+        ccall((:gametracer_free, libgametracer), Cvoid, (Ptr{Cvoid},), ptr)
     end
 
     return [answers[:, j] for j in 1:Int(num_eq)]
 end
-
-function _gametracer_free(ptr::Ptr{Cdouble})
-    ccall((:gametracer_free, libgametracer), Cvoid, (Ptr{Cvoid},), ptr)
-end
-
-
-
-
-
 
 end
