@@ -66,7 +66,7 @@ function ipa!(
     M = sum(p.nums_actions)
 
     length(ans) == M || throw(ArgumentError(
-        "Length of ans ($length(ans)) must be equal to total number of actions (M=$M)"
+        "Length of ans $(length(ans)) must be equal to total number of actions (M=$M)"
     ))
 
     if ray === nothing
