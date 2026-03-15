@@ -42,4 +42,10 @@ using Test
             end
         end
     end
+
+    @testset "1-player game" begin
+        g = NormalFormGame([[1], [2], [3]])
+        @test_throws ArgumentError ipa_solve(g)
+        @test_throws ArgumentError gnm_solve(g)
+    end
 end

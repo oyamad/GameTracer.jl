@@ -78,6 +78,10 @@ end
 ipa_solve(g::NormalFormGame; kwargs...) = 
     ipa_solve(Random.GLOBAL_RNG, g; kwargs...)
 
+function ipa_solve(rng::AbstractRNG, g::NormalFormGame{1}; kwargs...)
+    throw(ArgumentError("not implemented for 1-player games"))
+end
+
 
 """
     gnm_solve(g::NormalFormGame) -> GNMResult
@@ -121,6 +125,10 @@ end
 
 gnm_solve(g::NormalFormGame; kwargs...) = 
     gnm_solve(Random.GLOBAL_RNG, g; kwargs...)
+
+function gnm_solve(rng::AbstractRNG, g::NormalFormGame{1}; kwargs...)
+    throw(ArgumentError("not implemented for 1-player games"))
+end
 
 
 # ------------------------------------------------------------------
