@@ -64,6 +64,24 @@ using Test
         end
     end
 
+    @testset "gnm_solve input validation" begin
+        g = gs[1]
+        seed = 1234
+        rng = MersenneTwister(seed)
+        M = sum(g.nums_actions)
+        @test_throws ArgumentError gnm_solve(rng, g, ray=zeros(M - 1))
+        @test_throws ArgumentError gnm_solve(rng, g, ray=fill(Inf, M))
+        @test_throws ArgumentError gnm_solve(rng, g, steps=0)
+        @test_throws ArgumentError gnm_solve(rng, g, fuzz=Inf)
+        @test_throws ArgumentError gnm_solve(rng, g, fuzz=0.0)
+        @test_throws ArgumentError gnm_solve(rng, g, lnmfreq=0)
+        @test_throws ArgumentError gnm_solve(rng, g, lnmmax=-1)
+        @test_throws ArgumentError gnm_solve(rng, g, lambdamin=Inf)
+        @test_throws ArgumentError gnm_solve(rng, g, lambdamin=0.0)
+        @test_throws ArgumentError gnm_solve(rng, g, threshold=Inf)
+        @test_throws ArgumentError gnm_solve(rng, g, threshold=0.0)
+    end
+
     @testset "gnm_solve" begin
         seed = 1234
         rng = MersenneTwister(seed)
