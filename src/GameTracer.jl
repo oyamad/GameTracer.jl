@@ -66,8 +66,8 @@ function ipa_solve(
     length(zh) == M || throw(ArgumentError("length(zh) must be sum of g.nums_actions"))
     all(isfinite, ray) || throw(ArgumentError("ray must contain finite values"))
     all(isfinite, zh) || throw(ArgumentError("zh must contain finite values"))
-    isfinite(alpha) && alpha > 0 || 
-        throw(ArgumentError("alpha must be a positive finite value"))
+    isfinite(alpha) && 0 < alpha < 1 || 
+        throw(ArgumentError("alpha must be a positive finite value in (0, 1)"))
     isfinite(fuzz) && fuzz > 0 || 
         throw(ArgumentError("fuzz must be a positive finite value"))
 
