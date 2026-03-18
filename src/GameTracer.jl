@@ -19,9 +19,13 @@ export ipa_solve, gnm_solve
 """
     IPAResult
 
+Result of [`ipa_solve`](@ref).
+
 # Fields
-- `NE::NTuple{N, Vector{Float64}}`: one Nash equilibrium in mixed strategies.
-- `ret_code::Int`: return code from the underlying C function
+- `NE::NTuple{N, Vector{Float64}}`: Mixed-action profile of a Nash equilibrium 
+    computed by `ipa_solve`, stored as one probability vector per player.
+- `ret_code::Int`: Raw positive return value from the underlying C function. 
+    See `ipa_solve` for details.
 """
 struct IPAResult{N}
     NE::NTuple{N, Vector{Float64}}
@@ -31,9 +35,14 @@ end
 """
     GNMResult
 
+Result of [`gnm_solve`](@ref).
+
 # Fields
-- `NEs::Vector{NTuple{N, Vector{Float64}}}`: equilibria found by GNM.
-- `ret_code::Int`: return code from the underlying C function
+- `NEs::Vector{NTuple{N, Vector{Float64}}}`: Mixed-action profiles of Nash 
+    equilibria computed by `gnm_solve`.
+- `ret_code::Int`: Raw return value from the underlying C function. In the 
+    current implementation, this is equal to the number of equilibria returned 
+    in `NEs`. See `gnm_solve` for details.
 """
 struct GNMResult{N}
     NEs::Vector{NTuple{N, Vector{Float64}}}
@@ -42,27 +51,36 @@ end
 
 
 """
-    ipa_solve(g::NormalFormGame) -> IPAResult
+    ipa_solve(rng, g; 
+              ray = rand(rng, sum(g.nums_actions)), 
+              z_init = ones(sum(g.nums_actions)), 
+              alpha = 0.02,
+              fuzz = 1e-6)
 
-Compute one Nash equilibrium using the IPA algorithm.
+Compute one mixed-action Nash equilibrium of `g` with the iterated polymatrix 
+approximation (IPA) algorithm (Govindan and Wilson, 2004).
 
 # Arguments
-- `g::NormalFormGame`: the game to solve (must have 2 or more players)
-
-# Keyword Arguments
-- `ray::AbstractVector{<:Real}`: 
-    initial ray for IPA (default: random vector of length sum of g.nums_actions)
-- `z_init::AbstractVector{<:Real}`: 
-    initial z_init vector for IPA (default: vector of ones of length sum of g.nums_actions)
-- `alpha::Real`: step size parameter for IPA (default: 0.02)
-- `fuzz::Real`: convergence threshold for IPA (default: 1e-6)
+- `rng::AbstractRNG`: Random number generator used.
+- `g::NormalFormGame`: A `NormalFormGame` instance with `N >=2` players.
+- `ray::AbstractVector{<:Real}`: Pertubation ray. Its length must 
+    correspond to `sum(g.nums_actions)`.
+- `z_init::AbstractVector{<:Real}`: Initial point for the iteration. Its 
+    length must correspond to `sum(g.nums_actions)`.
+- `alpha::Real`: Step size parameter. Must satisfy `0 < alpha < 1`.
+- `fuzz::Real`: Convergence tolerance for an equilibrium.
 
 # Returns
-- `IPAResult`: one equilibrium found by IPA.
+- `res::IPAResult{N}`: Result object containing information about 
+    the computed equilibrium and status code returned from the underlying C 
+    routine. See [`IPAResult`](@ref) for details.
+
+# Notes
+* Pass an explicit `rng` or `ray` to obtain reproducible results.
 
 # References
-- S. Govindan and R. Wilson (2004), "Computing Nash equilibria by iterated
-  polymatrix approximation", Journal of Economic Dynamics and Control 28,
+- S. Govindan and R. Wilson, "Computing Nash equilibria by iterated
+  polymatrix approximation," Journal of Economic Dynamics and Control, 28 (2004),
   1229-1241.
 """
 function ipa_solve(
@@ -105,30 +123,49 @@ end
 
 
 """
-    gnm_solve(g::NormalFormGame) -> GNMResult
+    gnm_solve(rng, g;
+              ray = rand(rng, sum(g.nums_actions)),
+              steps = 100,
+              fuzz = 1e-12,
+              lnmfreq = 3,
+              lnmmax = 10,
+              lambdamin = -10.0,
+              wobble = false,
+              threshold = 1e-2)
 
-Compute Nash equilibria using the GNM algorithm.
+Compute mixed-action Nash equilibria of `g` with the global Newton method (GNM) 
+algorithm (Govindan and Wilson, 2003). 
 
 # Arguments
-- `g::NormalFormGame`: the game to solve (must have 2 or more players)
-
-# Keyword Arguments
-- `ray::AbstractVector{<:Real}`: 
-    initial ray for GNM (default: random vector of length sum of g.nums_actions)
-- `steps::Integer`: maximum number of steps for GNM (default: 100)
-- `fuzz::Real`: convergence threshold for GNM (default: 1e-12)
-- `lnmfreq::Integer`: frequency of LNM calls in GNM (default: 3)
-- `lnmmax::Integer`: maximum number of LNM calls in GNM (default: 10)
-- `lambdamin::Real`: minimum lambda value for LNM in GNM (default: -10.0)
-- `wobble::Bool`: whether to use wobbling in GNM (default: false)
-- `threshold::Real`: threshold for wobbling in GNM (default: 1e-2)
+- `rng::AbstractRNG`: Random number generator used.
+- `g::NormalFormGame`: A `NormalFormGame` instance with `N >=2` players.
+- `ray::AbstractVector{<:Real}`: Pertubation ray. Its length must 
+    correspond to `sum(g.nums_actions)`.
+- `steps::Integer`: Maximum number of steps; higher values of this parameter 
+    slow GNM down, but may help it avoid getting off the path.
+- `fuzz::Real`: Convergence tolerance for an equilibrium.
+- `lnmfreq::Integer`: Frequency of the local Newton method (LNM) subroutines.
+    Higher values decreases accumulated error.
+- `lnmmax::Integer`: Maximum number of iterations within the LNM algorithm.
+- `lambdamin::Real`: Minimum lambda value for the LNM algorithm. The algorithm
+    terminates if lambda falls below this value. Must be negative.
+- `wobble::Bool`: Whether to use "wobbles" of the perturbation vector to remove
+    accumulated errors.
+- `threshold::Real`: The equilibrium error tolerance for doing a wobble. If 
+    wobbles are disabled, the GNM algorithm terminates if the error reaches this
+    threshold.
 
 # Returns
-- `GNMResult`: equilibria found by GNM.
+- `res::GNMResult{N}`: Result object containing information about 
+    the computed equilibria and status code returned from the underlying C 
+    routine. See [`GNMResult`](@ref) for details.
+
+# Notes
+* Pass an explicit `rng` or `ray` to obtain reproducible results.
 
 # References
-- S. Govindan and R. Wilson (2003), "A global Newton method to compute Nash
-  equilibria", Journal of Economic Theory 110, 65-86.
+- S. Govindan and R. Wilson, "A global Newton method to compute Nash 
+    equilibria," Journal of Economic Theory, 110 (2003), 65-86.
 """
 function gnm_solve(
     rng::AbstractRNG,
@@ -145,9 +182,9 @@ function gnm_solve(
     M = sum(g.nums_actions)
 
     length(ray) == M ||
-        throw(ArgumentError("length(ray) must be sum(g.nums_actions)"))
+        throw(ArgumentError("length(ray) must be equal to sum(g.nums_actions)"))
     lambdamin < 0 || 
-        throw(ArgumentError("lambdamin must be a negative finite value"))
+        throw(ArgumentError("lambdamin must be negative"))
 
     actions = Cint[g.nums_actions...]
     p = GAMPayoffVector(Cdouble, g)
