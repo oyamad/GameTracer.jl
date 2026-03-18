@@ -36,7 +36,7 @@ using Test
         rng = MersenneTwister(seed)
         for g in gs
             res = @inferred gnm_solve(rng, g)
-            @test length(res.NEs) == res.num_NEs
+            @test length(res.NEs) == res.ret_code
             for NE in res.NEs
                 @test is_nash(g, NE,)
             end

@@ -21,9 +21,11 @@ export ipa_solve, gnm_solve
 
 # Fields
 - `NE::NTuple{N, Vector{Float64}}`: one Nash equilibrium in mixed strategies.
+- `ret_code::Int`: return code from the underlying C function
 """
 struct IPAResult{N}
     NE::NTuple{N, Vector{Float64}}
+    ret_code::Int
 end
 
 """
@@ -31,11 +33,11 @@ end
 
 # Fields
 - `NEs::Vector{NTuple{N, Vector{Float64}}}`: equilibria found by GNM.
-- `num_NEs::Int`: number of equilibria found.
+- `ret_code::Int`: return code from the underlying C function
 """
 struct GNMResult{N}
     NEs::Vector{NTuple{N, Vector{Float64}}}
-    num_NEs::Int
+    ret_code::Int
 end
 
 
@@ -85,13 +87,13 @@ function ipa_solve(
     ray = convert(Vector{Cdouble}, ray)
     z_init = Vector{Cdouble}(z_init)  # Copy
     out = Vector{Cdouble}(undef, M)
-    out, ret = ipa!(
+    out, ret_code = ipa!(
         N, actions, p.payoffs, ray, z_init, Cdouble(alpha), Cdouble(fuzz), out
     )
 
     NE = _get_action_profile(out, g.nums_actions)
 
-    return IPAResult(NE)
+    return IPAResult(NE, Int(ret_code))
 end
 
 ipa_solve(g::NormalFormGame; kwargs...) = 
@@ -150,7 +152,7 @@ function gnm_solve(
     actions = Cint[g.nums_actions...]
     p = GAMPayoffVector(Cdouble, g)
     ray = convert(Vector{Cdouble}, ray)
-    answers, ret = gnm(
+    answers, ret_code = gnm(
         N, actions, p.payoffs, ray,
         steps, Cdouble(fuzz), lnmfreq, lnmmax,
         Cdouble(lambdamin), wobble, Cdouble(threshold)
@@ -158,7 +160,7 @@ function gnm_solve(
 
     NEs = _get_action_profiles(answers, g.nums_actions)
     
-    return GNMResult(NEs, Int(ret))
+    return GNMResult(NEs, Int(ret_code))
 end
 
 gnm_solve(g::NormalFormGame; kwargs...) = 
