@@ -94,9 +94,9 @@ function ipa_solve(
     M = sum(g.nums_actions)
 
     length(ray) == M ||
-        throw(ArgumentError("length(ray) must be equal to sum(g.nums_actions)"))
+        throw(ArgumentError("length(ray) must equal sum(g.nums_actions)"))
     length(z_init) == M || 
-        throw(ArgumentError("length(z_init) must be equal to sum(g.nums_actions)"))
+        throw(ArgumentError("length(z_init) must equal sum(g.nums_actions)"))
     0 < alpha < 1 || 
         throw(ArgumentError("alpha must satisfy 0 < alpha < 1"))
     
@@ -182,7 +182,7 @@ function gnm_solve(
     M = sum(g.nums_actions)
 
     length(ray) == M ||
-        throw(ArgumentError("length(ray) must be equal to sum(g.nums_actions)"))
+        throw(ArgumentError("length(ray) must equal sum(g.nums_actions)"))
     lambdamin < 0 || 
         throw(ArgumentError("lambdamin must be negative"))
 
