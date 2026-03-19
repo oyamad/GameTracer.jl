@@ -23,6 +23,7 @@ using Test
         fuzz_default = 1e-6
         for g in gs
             res = @inferred ipa_solve(rng, g)
+            @test res.ret_code > 0
             @test is_nash(g, res.NE, tol=fuzz_default)
 
             fuzz = 1e-8
