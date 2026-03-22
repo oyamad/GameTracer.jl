@@ -2,13 +2,7 @@ module GameTracer
 
 using GameTheory: NormalFormGame, GAMPayoffVector
 using Random
-
-# ------------------------------------------------------------------
-# Library Path
-# ------------------------------------------------------------------
-# TODO: Remove hardcoded dylib path after Phase B
-# Temporary: Using local dylib until Phase B is complete
-const libgametracer = "/tmp/gametracer_prefix/lib/libgametracer.dylib"
+using gametracer_jll: libgametracer
 
 # ------------------------------------------------------------------
 # Public API & Result Types
