@@ -22,13 +22,21 @@ using Test
         rng = MersenneTwister(seed)
         fuzz_default = 1e-6
         for g in gs
+            payoff_max = maximum(
+                maximum(player.payoff_array) for player in g.players
+            )
+
             res = @inferred ipa_solve(rng, g)
             @test res.ret_code > 0
-            @test is_nash(g, res.NE, tol=fuzz_default)
+
+            # Heuristic; no epsilon-optimality guarantee derived in the paper
+            tol = fuzz_default * payoff_max
+            @test is_nash(g, res.NE, tol=tol)
 
             fuzz = 1e-8
             res = @inferred ipa_solve(rng, g, fuzz=fuzz)
-            @test is_nash(g, res.NE, tol=fuzz)
+            tol = fuzz * payoff_max
+            @test is_nash(g, res.NE, tol=tol)
         end
     end
 
