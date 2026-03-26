@@ -4,7 +4,7 @@ CurrentModule = GameTracer
 
 # GameTracer
 
-Documentation for [GameTracer](https://github.com/your-github-username/GameTracer.jl).
+Documentation for [GameTracer](https://github.com/QuantEcon/GameTracer.jl).
 
 ```@index
 ```
