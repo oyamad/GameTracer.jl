@@ -6,24 +6,22 @@
 [![codecov](https://codecov.io/gh/QuantEcon/GameTracer.jl/graph/badge.svg)](https://codecov.io/gh/QuantEcon/GameTracer.jl)
 [![License: GPL v3+](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A Julia wrapper for [gametracer](https://github.com/QuantEcon/gametracer), 
-    providing IPA and GNM Nash equilibrium solvers for 
-    [GameTheory.jl](https://github.com/QuantEcon/GameTheory.jl) normal-form 
-    games.
+A Julia wrapper for [gametracer](https://github.com/QuantEcon/gametracer), providing IPA and GNM Nash equilibrium solvers for [GameTheory.jl](https://github.com/QuantEcon/GameTheory.jl) normal-form games.
 
 ## Example usage
 
-Consider the following 2x2x2 game with 9 Nash equilibria from McKelvey and 
-    McLennan (1996):
+Consider the following 2x2x2 game with 9 Nash equilibria from McKelvey and McLennan (1996):
 
 ```julia
 using GameTheory, GameTracer, Random
+seed = 1234
+
 g = NormalFormGame((2, 2, 2))
 g[1, 1, 1] = 9, 8, 12
 g[2, 2, 1] = 9, 8, 2
 g[1, 2, 2] = 3, 4, 6
 g[2, 1, 2] = 3, 4, 4
-printin(g)
+println(g)
 ```
 ```
 2×2×2 NormalFormGame{3, Float64}:
@@ -36,27 +34,39 @@ printin(g)
  [3.0, 4.0, 4.0]  [0.0, 0.0, 0.0]
 ```
 
-`ipa_solve` computes one mixed-action Nash equilibrium with the the iterated 
-    polymatrix approximation (IPA) algorithm (Govindan and Wilson, 2004):
-```julia
-ray = [0.11, 0.37, 0.73, 0.19, 0.59, 0.83];
-res = ipa_solve(g; ray=ray);
-```
-```
-GameTracer.IPAResult{3}(([1.0, 0.0], [1.0, 0.0], [1.0, 0.0]), 1)
-```
-
-`gnm_solve` computes mixed-action Nash equilibria with the the global Newton 
-    method (GNM) algorithm (Govindan and Wilson, 2003):
+`ipa_solve` computes one mixed-action Nash equilibrium with the iterated polymatrix approximation (IPA) algorithm (Govindan and Wilson, 2004):
 
 ```julia
-res = gnm_solve(g, ray=ray)
+rng = MersenneTwister(seed)
+res = ipa_solve(rng, g)
+res.NE
 ```
 ```
-GameTracer.GNMResult{3}([([0.0, 1.0], [1.0, 0.0], [0.0, 1.0]), 
-    ([0.2500000000000622, 0.7499999999999374], [1.0, 0.0], [0.25000000000008304,
-     0.7499999999999165]), ([1.0, 0.0], [1.0, 0.0], [1.0, 0.0])], 3)
+([0.2500000414734812, 0.7499999585265188], [0.49999980486854023, 0.5000001951314598], [0.33333361994793975, 0.6666663800520602])
 ```
+
+`gnm_solve` computes mixed-action Nash equilibria with the global Newton method (GNM) algorithm (Govindan and Wilson, 2003):
+
+```julia
+rng = MersenneTwister(seed)
+res1 = gnm_solve(rng, g)
+println(length(res1.NEs))
+```
+```
+7
+```
+
+When `ray` is omitted, `GameTracer.jl` generates it internally with `rand(rng, sum(g.nums_actions))`. Therefore, repeated calls with the same object use different rays as its state advances.
+
+```julia
+res2 = gnm_solve(rng, g);
+println(length(res2.NEs))
+```
+```
+2
+```
+
+In the example above, the second call finds 2 equilibria while the first call finds 7. Different rays may yield different equilibria, or different numbers of equilibria, if found. `gnm_solve` is not guaranteed to find an equilibrium on an arbitrary run.
 
 ## License
 
