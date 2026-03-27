@@ -17,7 +17,7 @@ Result of [`ipa_solve`](@ref).
 
 # Fields
 - `NE::NTuple{N, Vector{Float64}}`: Tuple of computed Nash equilibrium mixed 
-    actions.
+  actions.
 - `ret_code::Int`: Return code from the underlying C shim.
 """
 struct IPAResult{N}
@@ -31,8 +31,8 @@ end
 Result of [`gnm_solve`](@ref).
 
 # Fields
-- `NEs::Vector{NTuple{N, Vector{Float64}}}`: Vector of computed Nash equilibrium 
-    mixed actions.
+- `NEs::Vector{NTuple{N, Vector{Float64}}}`: Vector of tuples of computed Nash 
+  equilibrium mixed actions.
 - `ret_code::Int`: Return code from the underlying C shim.
 """
 struct GNMResult{N}
@@ -42,55 +42,61 @@ end
 
 
 """
-    ipa_solve([rng=Random.GLOBAL_RNG, ]g; kwargs...)
+    ipa_solve([rng=Random.GLOBAL_RNG], g; kwargs...)
 
 Compute one mixed-action Nash equilibrium of `g` with the iterated polymatrix 
 approximation (IPA) algorithm (Govindan and Wilson, 2004).
 
 # Arguments
 - `rng::AbstractRNG`: Random number generator used when the default `ray` is 
-    used.
+  used.
 - `g::NormalFormGame`: A `NormalFormGame` instance with `N >= 2` players.
 
-# Keyword Arguments
+# Keywords
 - `ray::AbstractVector{<:Real} = rand(rng, sum(g.nums_actions))`: 
-    Perturbation ray. Its length must equal `sum(g.nums_actions)`.
+  Perturbation ray. Its length must equal `sum(g.nums_actions)`.
 - `z_init::AbstractVector{<:Real} = ones(sum(g.nums_actions))`: 
-    Initial point for the iteration. Its length must equal `sum(g.nums_actions)`.
+  Initial point for the iteration. Its length must equal `sum(g.nums_actions)`.
 - `alpha::Real = 0.02`: Step size parameter. Must satisfy `0 < alpha < 1`.
 - `fuzz::Real = 1e-6`: Cutoff accuracy for the computed equilibrium.
 
 # Returns
 - `res::IPAResult{N}`: Result object containing information about 
-    the computed equilibrium.
-    - `res.NE`: Tuple of computed Nash equilibrium mixed actions.
-    - `res.ret_code`: Return code from the underlying C shim.
+  the computed equilibrium.
+  - `res.NE`: Tuple of computed Nash equilibrium mixed actions.
+  - `res.ret_code`: Return code from the underlying C shim.
 
 # Examples
 
-Consider the following 3x2 game from von Stengel (2007):
+<<<<<<< HEAD
+Consider the following 2x2x2 game with 9 Nash equilibria from McKelvey and McLennan (1996):
+=======
+Consider the following 2x2x2 game with 9 Nash equilibria from McKelvey and 
+McLennan (1996):
+>>>>>>> 0c1031a (docs: update docstrings to align with convention)
 
 ```julia
 julia> using GameTheory, GameTracer, Random
 
-julia> player1 = Player([3 3; 2 5; 0 6]);  
+julia> seed = 1234
 
-julia> player2 = Player([3 2 3; 2 6 1]);
+julia> g = NormalFormGame((2, 2, 2));
 
-julia> g = NormalFormGame(player1, player2);
+julia> g[1, 1, 1] = 9, 8, 12;
 
-julia> ray = [0.87, 0.04, 0.81, 0.97, 0.17];
+julia> g[2, 2, 1] = 9, 8, 2;
 
-julia> res = ipa_solve(g; ray=ray);
+julia> g[1, 2, 2] = 3, 4, 6;
 
-julia> println(res.ret_code > 0)
-true
+julia> g[2, 1, 2] = 3, 4, 4;
 
-julia> println(length(res.NE))
-2
+julia> rng = MersenneTwister(seed)
 
-julia> println(is_nash(g, res.NE; tol=1e-6))
-true
+julia> res = ipa_solve(rng, g)
+
+julia> res.NE
+([0.2500000414734812, 0.7499999585265188], [0.49999980486854023, 
+    0.5000001951314598], [0.33333361994793975, 0.6666663800520602])
 ```
 
 # References
@@ -138,46 +144,48 @@ end
 
 
 """
-    gnm_solve([rng=Random.GLOBAL_RNG, ]g; kwargs...)
+    gnm_solve([rng=Random.GLOBAL_RNG], g; kwargs...)
 
-Compute mixed-action Nash equilibria of `g` with the global Newton method (GNM) 
-algorithm (Govindan and Wilson, 2003). 
+Compute multiple mixed-action Nash equilibria of `g` with the global Newton 
+method (GNM) algorithm (Govindan and Wilson, 2003). 
 
 # Arguments
 - `rng::AbstractRNG`: Random number generator used when the default `ray` is 
-    used.
+  used.
 - `g::NormalFormGame`: A `NormalFormGame` instance with `N >= 2` players.
 
-# Keyword Arguments
+# Keywords
 - `ray::AbstractVector{<:Real} = rand(rng, sum(g.nums_actions))`: 
-    Perturbation ray. Its length must equal `sum(g.nums_actions)`.
+  Perturbation ray. Its length must equal `sum(g.nums_actions)`.
 - `steps::Integer = 100`: Maximum number of steps.
 - `fuzz::Real = 1e-12`: Cutoff value for a variety of things.
 - `lnmfreq::Integer = 3`: Frequency parameter. A Local Newton Method subroutine 
-    will be run every LNMFreq steps to decrease accumulated errors.
+  will be run every LNMFreq steps to decrease accumulated errors.
 - `lnmmax::Integer = 10`: Maximum number of iterations within the LNM algorithm.
 - `lambdamin::Real = -10.0`: Minimum lambda value. The equilibrium search 
-    terminates if lambda falls below this value. Must be negative.
+  terminates if lambda falls below this value. Must be negative.
 - `wobble::Bool = false`: Whether to use "wobbles" of the perturbation vector to
-     remove accumulated errors. This removes the theoretical guarantee of 
-     convergence, but in practice may help keep GNM on the path 
+  remove accumulated errors. This removes the theoretical guarantee of 
+  convergence, but in practice may help keep GNM on the path 
 - `threshold::Real = 1e-2`: The equilibrium error tolerance for doing a wobble. 
-    If wobbles are disabled, the GNM algorithm terminates if the error reaches 
-    this threshold.
+  If wobbles are disabled, the GNM algorithm terminates if the error reaches 
+  this threshold.
 
 # Returns
 - `res::GNMResult{N}`: Result object containing information about 
-    the computed equilibria.
-    - `res.NEs`: Vector of computed Nash equilibrium mixed actions.
-    - `res.ret_code`: Return code from the underlying C shim.
+  the computed equilibria.
+  - `res.NEs`: Vector of tuples of computed Nash equilibrium mixed actions.
+  - `res.ret_code`: Return code from the underlying C shim.
 
 # Examples
 
 Consider the following 2x2x2 game with 9 Nash equilibria from McKelvey and 
-    McLennan (1996):
+McLennan (1996):
 
 ```julia
 julia> using GameTheory, GameTracer, Random
+
+julia> seed = 1234
 
 julia> g = NormalFormGame((2, 2, 2));
 
@@ -189,23 +197,36 @@ julia> g[1, 2, 2] = 3, 4, 6;
 
 julia> g[2, 1, 2] = 3, 4, 4;
 
-julia> ray = [0.87, 0.04, 0.81, 0.97, 0.17, 0.04]
+julia> rng = MersenneTwister(seed)
 
-julia> res = gnm_solve(g; ray=ray);
+julia> res1 = gnm_solve(rng, g);
 
-julia> println(res.ret_code)
-9
+julia> println(length(res1.NEs))
+7
+```
+When `ray` is omitted, `GameTracer.jl` generates it internally with `rand(rng, 
+sum(g.nums_actions))`. Therefore, repeated calls with the same object use 
+different rays as its state advances.
 
-julia> println(length(res.NEs))
-9
+```julia
+julia> res2 = gnm_solve(rng, g);
 
-julia> println(all(NE -> is_nash(g, NE), res.NEs))
-true
+julia> println(length(res2.NEs))
+2
 ```
 
+In the example above, the second call finds 2 equilibria while the first call 
+finds 7. Different rays may yield different equilibria, or different numbers of 
+<<<<<<< HEAD
+equilibria, if found. `gnm_solve` is not guaranteed to find an equilibrium on an arbitrary run.
+=======
+equilibria, if found. `gnm_solve` is not guaranteed to find an equilibrium on an
+arbitrary run.
+>>>>>>> 0c1031a (docs: update docstrings to align with convention)
+
 # References
-- S. Govindan and R. Wilson, "A global Newton method to compute Nash 
-    equilibria," Journal of Economic Theory, 110 (2003), 65-86.
+- S. Govindan and R. Wilson, "A global Newton method to compute Nash equilibria,"
+  Journal of Economic Theory, 110 (2003), 65-86.
 """
 function gnm_solve(
     rng::AbstractRNG,
