@@ -13,13 +13,13 @@ exposing its Nash equilibrium solvers for `NormalFormGame` from
 
 ## Solvers
 
-- `ipa_solve`:
+- [`ipa_solve`](https://quantecon.github.io/GameTracer.jl/stable/#GameTracer.ipa_solve):
   Compute one mixed-action approximate Nash equilibrium of a normal form game
   with the iterated polymatrix approximation (IPA) algorithm (Govindan and Wilson, 2004).
   It approximates the game by a sequence of polymatrix games, each solved by a
   variant of the Lemke-Howson algorithm.
 
-- `gnm_solve`:
+- [`gnm_solve`](https://quantecon.github.io/GameTracer.jl/stable/#GameTracer.gnm_solve):
   Compute mixed-action Nash equilibria of a normal form game with the global
   Newton method (GNM) algorithm (Govindan and Wilson, 2003). It follows a
   homotopy path perturbing the game along a ray, starting from a game with a
